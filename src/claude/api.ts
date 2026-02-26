@@ -178,8 +178,24 @@ export function parseUsageResponse(raw: unknown): ClaudeUsageResponse {
     }
   }
 
+  // Use current session (five_hour) for the light — resets every ~5 hours so the light
+  // changes more often. Fall back to seven_day if five_hour isn't present.
+  const fiveHour = limits.find(
+    (l) =>
+      l.type.toLowerCase().includes("five_hour") ||
+      l.type.toLowerCase().includes("five hour")
+  );
+  const sevenDay = limits.find(
+    (l) =>
+      l.type.toLowerCase().includes("seven_day") ||
+      l.type.toLowerCase().includes("seven day")
+  );
+  const primary = fiveHour ?? sevenDay;
+  const limitsForHighest = primary ? [primary] : limits.filter((l) => !l.type.toLowerCase().includes("extra"));
   const highestPercent =
-    limits.length > 0 ? Math.max(...limits.map((l) => l.percentUsed)) : 0;
+    limitsForHighest.length > 0
+      ? Math.max(...limitsForHighest.map((l) => l.percentUsed))
+      : 0;
 
   return { limits, highestPercent };
 }

@@ -89,7 +89,20 @@ function parseExtensionUsage(data: unknown): { percentage: number; details: stri
 
   if (entries.length === 0) return null;
 
-  const highest = Math.max(...entries.map((e) => e.pct));
+  // Use current session (five_hour) — resets every ~5 hours. Fall back to seven_day if absent.
+  const fiveHour = entries.find(
+    (e) =>
+      e.type.toLowerCase().includes("five_hour") ||
+      e.type.toLowerCase().includes("five hour")
+  );
+  const sevenDay = entries.find(
+    (e) =>
+      e.type.toLowerCase().includes("seven_day") ||
+      e.type.toLowerCase().includes("seven day")
+  );
+  const primary = fiveHour ?? sevenDay;
+  const entriesForHighest = primary ? [primary] : entries.filter((e) => !e.type.toLowerCase().includes("extra"));
+  const highest = Math.max(...entriesForHighest.map((e) => e.pct));
   const details = entries
     .map((e) => {
       const resetInfo = e.reset ? `, resets ${e.reset}` : "";
