@@ -4,7 +4,7 @@
   "description": "Visualize your Claude usage limits on a Philips Hue light",
   "type": "module",
   "bin": {
-    "claude-hue": "./dist/index.js"
+    "claude-hue": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -26,7 +26,7 @@
   "author": "Vocino (https://vocino.com)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vocino/claude-hue.git"
+    "url": "git+https://github.com/vocino/claude-hue.git"
   },
   "homepage": "https://github.com/vocino/claude-hue#readme",
   "bugs": "https://github.com/vocino/claude-hue/issues",
