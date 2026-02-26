@@ -1,6 +1,6 @@
 # Claude Usage for Philips Hue
 
-**See your Claude.ai usage at a glance** — your Philips Hue light changes color (e.g., green → red) as you approach your limits. A little fun tool by [@Vocino](https://vocino.com).
+**See your Claude.ai usage at a glance** — your Philips Hue light changes color (e.g., green → red) as you approach your limits. A little fun tool by [@Vocino](https://www.threads.com/@vocino).
 
 For example:
 - **Green** = plenty of usage left
@@ -156,13 +156,28 @@ Copy the **full** cookie string (starts with `anthropic-device-id=...`) for best
 
 ---
 
+## Config & data
+
+All runtime data lives in `~/.claude-hue/`:
+
+- `config.json` — Bridge IP, API key, light ID, colors, limits
+- `usage.log` — Timestamps from the Claude Code hook (fallback mode)
+- `daemon.pid` — PID of the running daemon
+
+---
+
 ## Development
 
 ```bash
-npm run build    # Compile TypeScript
-npm test         # Run tests
-npm run dev      # Watch mode
+npm run build        # Compile TypeScript to dist/
+npm run dev          # Watch mode compilation
+npm test             # Run tests
+npm run test:watch   # Watch mode tests
 ```
+
+**Project structure:** The **hook** (`src/hook/`) appends timestamps for fallback counting. The **daemon** (`src/daemon/`) accepts usage from OAuth, extension, or cookie; interpolates color; and updates the light. The **CLI** (`src/index.ts`) uses Commander for setup, auth, start, stop, etc.
+
+**Conventions:** ESM throughout. Hue API calls use `hueFetch()` from `src/hue/fetch.ts` for self-signed TLS. Colors use CIE xy (not RGB). The hook stays minimal (sync only, no config).
 
 ---
 
