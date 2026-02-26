@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Claude Hue",
+  "version": "0.1.0",
+  "description": "Sends your Claude usage data to claude-hue so your Philips Hue light reflects your usage limits.",
+  "permissions": ["cookies", "alarms"],
+  "host_permissions": ["https://claude.ai/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
