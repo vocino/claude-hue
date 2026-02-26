@@ -20,7 +20,13 @@ For example:
 
 ## Quick start
 
-### 1. Install and build
+### 1. Install
+
+```bash
+npm install -g claude-hue
+```
+
+Or build from source:
 
 ```bash
 git clone https://github.com/vocino/claude-hue.git
@@ -32,7 +38,7 @@ npm run build
 ### 2. Run setup
 
 ```bash
-node dist/index.js setup
+claude-hue setup
 ```
 
 You'll be guided through:
@@ -50,12 +56,12 @@ For the light to show **actual** Claude usage (not just prompt counting), use on
 |--------|-------------|------------|
 | **Claude Code OAuth** | Anyone using Claude Code | Run `claude login` once. No other setup. |
 | **Browser extension** | Chrome users | Load the `extension/` folder in Chrome → Extensions → Load unpacked. Stay logged into claude.ai. |
-| **Cookie auth** | No extension, no Claude Code | Run `node dist/index.js auth` and paste your cookie from DevTools. |
+| **Cookie auth** | No extension, no Claude Code | Run `claude-hue auth` and paste your cookie from DevTools. |
 
 ### 4. Start the daemon
 
 ```bash
-node dist/index.js start
+claude-hue start
 ```
 
 Your light will now update based on your usage. Keep this terminal open (or run it in the background).
@@ -66,15 +72,15 @@ Your light will now update based on your usage. Keep this terminal open (or run 
 
 | Command | Description |
 |---------|-------------|
-| `node dist/index.js setup` | Configure bridge, light, and colors |
-| `node dist/index.js start` | Start the daemon (updates the light) |
-| `node dist/index.js stop` | Stop the daemon |
-| `node dist/index.js status` | Show current usage and mode |
-| `node dist/index.js demo` | Cycle light through colors to verify it works |
-| `node dist/index.js auth` | Set claude.ai cookie for real usage |
-| `node dist/index.js reset` | Clear the usage log |
-| `node dist/index.js hook install` | Install Claude Code hook (fallback prompt counting) |
-| `node dist/index.js hook uninstall` | Remove the hook |
+| `claude-hue setup` | Configure bridge, light, and colors |
+| `claude-hue start` | Start the daemon (updates the light) |
+| `claude-hue stop` | Stop the daemon |
+| `claude-hue status` | Show current usage and mode |
+| `claude-hue demo` | Cycle light through colors to verify it works |
+| `claude-hue auth` | Set claude.ai cookie for real usage |
+| `claude-hue reset` | Clear the usage log |
+| `claude-hue hook install` | Install Claude Code hook (fallback prompt counting) |
+| `claude-hue hook uninstall` | Remove the hook |
 
 ---
 
@@ -109,9 +115,9 @@ Both 3-digit (`#f00`) and 6-digit (`#ff0000`) hex are supported.
 1. Open Chrome and go to `chrome://extensions`
 2. Turn on **Developer mode** (top right)
 3. Click **Load unpacked**
-4. Select the `extension` folder inside this project
+4. Select the `extension` folder (in the project if you cloned; if you used npm, run `npm root -g` and go to `claude-hue/extension` inside that path)
 5. Make sure you're logged into [claude.ai](https://claude.ai)
-6. Start the daemon with `node dist/index.js start`
+6. Start the daemon with `claude-hue start`
 
 The extension will fetch your usage and push it to the daemon. Click the extension icon to see current usage.
 
@@ -127,7 +133,7 @@ If you don't use the extension or Claude Code:
 4. Click any request to claude.ai (e.g. `usage`)
 5. In **Request Headers**, find **Cookie**
 6. Right-click the Cookie value → **Copy value**
-7. Run `node dist/index.js auth` and paste when prompted
+7. Run `claude-hue auth` and paste when prompted
 
 Copy the **full** cookie string (starts with `anthropic-device-id=...`) for best results.
 
@@ -136,15 +142,15 @@ Copy the **full** cookie string (starts with `anthropic-device-id=...`) for best
 ## Troubleshooting
 
 **Light doesn't change / hard to tell if it's working**
-- Run `node dist/index.js demo` — cycles the light through green → yellow → red so you can verify the light responds
-- Run `node dist/index.js status` — shows which mode is active and current usage
-- Ensure the daemon is running (`node dist/index.js start`)
+- Run `claude-hue demo` — cycles the light through green → yellow → red so you can verify the light responds
+- Run `claude-hue status` — shows which mode is active and current usage
+- Ensure the daemon is running (`claude-hue start`)
 - On startup, the daemon prints `Usage source: oauth` (real usage) or `Usage source: local` (prompt counting)
 
 **"Local prompt counting" but I want real usage**
 - Run `claude login` (if you use Claude Code), or
 - Install the browser extension and stay logged into claude.ai, or
-- Run `node dist/index.js auth` and paste your cookie
+- Run `claude-hue auth` and paste your cookie
 
 **Setup can't find my bridge**
 - Ensure the bridge and computer are on the same network
