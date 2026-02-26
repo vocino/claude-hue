@@ -1,7 +1,8 @@
-# claude-hue
+# Claude Usage for Philips Hue
 
-**See your Claude.ai usage at a glance** — your Philips Hue light changes color (e.g., green → red) as you approach your limits.
+**See your Claude.ai usage at a glance** — your Philips Hue light changes color (e.g., green → red) as you approach your limits. A little fun tool by [@Vocino](https://vocino.com).
 
+For example:
 - **Green** = plenty of usage left
 - **Yellow** = getting close
 - **Red** = near or at limit
@@ -39,7 +40,7 @@ You'll be guided through:
 - Finding your Hue bridge
 - Pressing the link button on the bridge
 - Choosing which light to use
-- Picking a color gradient (e.g., blue → red)
+- Picking a color gradient: presets (green→red, blue→red, etc.) or **custom hex codes** (e.g. `#40a02b` → `#d20f39`)
 
 ### 3. Get real usage data (pick one)
 
@@ -72,6 +73,8 @@ Your light will now update based on your usage. Keep this terminal open (or run 
 | `node dist/index.js demo` | Cycle light through colors to verify it works |
 | `node dist/index.js auth` | Set claude.ai cookie for real usage |
 | `node dist/index.js reset` | Clear the usage log |
+| `node dist/index.js hook install` | Install Claude Code hook (fallback prompt counting) |
+| `node dist/index.js hook uninstall` | Remove the hook |
 
 ---
 
@@ -85,6 +88,19 @@ The daemon gets usage data in this order:
 4. **Local prompt counting** — Fallback: counts prompts from the Claude Code hook. Rough estimate, not real usage.
 
 For the best experience, use OAuth or the extension.
+
+The light shows your **current session** (5-hour rolling window) — when that resets, the light goes back to green. Weekly limits don't affect the light.
+
+---
+
+## Custom colors
+
+During setup, choose **Custom (enter hex codes)** to pick your own gradient. Enter two hex colors:
+
+- **Start color** (low usage): e.g. `#40a02b`
+- **End color** (high usage): e.g. `#d20f39`
+
+Both 3-digit (`#f00`) and 6-digit (`#ff0000`) hex are supported.
 
 ---
 
