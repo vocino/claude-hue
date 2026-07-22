@@ -13,13 +13,18 @@ import { execSync } from "child_process";
 import { input } from "@inquirer/prompts";
 import { interpolateColor, interpolateBrightness } from "./hue/color.js";
 import { setLightColor } from "./hue/light.js";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+// Read version from package.json to keep CLI --version in sync
+const pkg = require("../package.json") as { version: string };
 
 const program = new Command();
 
 program
   .name("claude-hue")
   .description("Visualize your Claude usage limits on a Philips Hue light")
-  .version("0.1.0");
+  .version(pkg.version);
 
 program
   .command("setup")
