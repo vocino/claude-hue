@@ -9,11 +9,24 @@ export interface DiscoveredBridge {
  * Discover Hue bridges on the local network via Philips cloud discovery endpoint.
  */
 export async function discoverBridges(): Promise<DiscoveredBridge[]> {
-  const res = await fetch("https://discovery.meethue.com");
-  if (!res.ok) {
-    throw new Error(`Bridge discovery failed: ${res.status}`);
+  try {
+    const res = await fetch("https://discovery.meethue.com", {
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) {
+      throw new Error(`Bridge discovery failed: HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    if (!Array.isArray(data)) {
+      throw new Error("Bridge discovery returned unexpected response shape");
+    }
+    return data as DiscoveredBridge[];
+  } catch (err) {
+    if (err instanceof Error && err.name === "TimeoutError") {
+      throw new Error("Bridge discovery timed out — check your internet connection");
+    }
+    throw err;
   }
-  return res.json() as Promise<DiscoveredBridge[]>;
 }
 
 /**
@@ -31,9 +44,24 @@ export async function createUser(
       generateclientkey: true,
     }),
   });
-  const data = (await res.json()) as Array<
+
+  if (!res.ok) {
+    throw new Error(`Bridge request failed: HTTP ${res.status} ${res.statusText}`);
+  }
+
+  let data: Array<
     { success?: { username: string }; error?: { description: string } }
   >;
+  try {
+    data = (await res.json()) as typeof data;
+  } catch {
+    throw new Error("Bridge returned invalid JSON response");
+  }
+
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error("Unexpected response from bridge (empty or non-array)");
+  }
+
   if (data[0]?.error) {
     throw new Error(data[0].error.description);
   }
@@ -58,10 +86,33 @@ export async function getLights(
   username: string
 ): Promise<HueLight[]> {
   const res = await hueFetch(`https://${bridgeIp}/api/${username}/lights`);
-  const data = (await res.json()) as Record<
+
+  if (!res.ok) {
+    throw new Error(`Failed to get lights: HTTP ${res.status} ${res.statusText}`);
+  }
+
+  let data: Record<
     string,
     { name: string; type: string; state: { on: boolean; reachable: boolean } }
   >;
+  try {
+    data = (await res.json()) as typeof data;
+  } catch {
+    throw new Error("Bridge returned invalid JSON for lights");
+  }
+
+  // Hue returns an error object when auth fails instead of a light map
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const raw = data as unknown as Record<string, unknown>;
+    if (raw.error) {
+      throw new Error(`Hue API error: ${JSON.stringify(raw.error)}`);
+    }
+  }
+
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new Error("Unexpected lights response shape from bridge");
+  }
+
   return Object.entries(data).map(([id, light]) => ({
     id,
     name: light.name,
