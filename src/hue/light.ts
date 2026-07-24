@@ -25,7 +25,18 @@ export async function setLightColor(
       body: JSON.stringify({ on: true, xy: [xy.x, xy.y], bri, transitiontime }),
     }
   );
-  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(`setLightColor failed: HTTP ${res.status} ${res.statusText}`);
+  }
+
+  let data: unknown;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Hue bridge returned invalid JSON for setLightColor");
+  }
+
   if (Array.isArray(data)) {
     const errors = data.filter(
       (r: Record<string, unknown>) => r.error !== undefined
@@ -44,7 +55,7 @@ export async function flashLight(
   username: string,
   lightId: number
 ): Promise<void> {
-  await hueFetch(
+  const res = await hueFetch(
     `https://${bridgeIp}/api/${username}/lights/${lightId}/state`,
     {
       method: "PUT",
@@ -52,4 +63,8 @@ export async function flashLight(
       body: JSON.stringify({ alert: "select" }),
     }
   );
+
+  if (!res.ok) {
+    throw new Error(`flashLight failed: HTTP ${res.status} ${res.statusText}`);
+  }
 }
