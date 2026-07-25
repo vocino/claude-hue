@@ -1,14 +1,5 @@
-import type { ColorConfig, BrightnessConfig, UsageConfig, DaemonConfig } from "../types.js";
-
-export const COLOR_PRESETS = {
-  green: { x: 0.2151, y: 0.7106 },
-  yellow: { x: 0.4317, y: 0.5007 },
-  orange: { x: 0.5562, y: 0.4084 },
-  red: { x: 0.675, y: 0.322 },
-  blue: { x: 0.153, y: 0.048 },
-  white: { x: 0.3227, y: 0.329 },
-  purple: { x: 0.2703, y: 0.1398 },
-} as const;
+import type { ColorConfig, BrightnessConfig, DaemonConfig } from "../types.js";
+import { COLOR_PRESETS } from "../hue/color.js";
 
 export const DEFAULT_COLORS: ColorConfig = {
   start: COLOR_PRESETS.green,
@@ -20,12 +11,8 @@ export const DEFAULT_BRIGHTNESS: BrightnessConfig = {
   end: 100,
 };
 
-export const DEFAULT_USAGE: UsageConfig = {
-  maxPrompts: 45,
-  windowMs: 5 * 60 * 60 * 1000, // 5 hours
-};
-
 export const DEFAULT_DAEMON: DaemonConfig = {
   transitionMs: 2000,
-  pollIntervalMs: 60_000, // 1 minute
+  // 5 min to avoid 429 on /api/oauth/usage — see https://github.com/anthropics/claude-code/issues/31021
+  pollIntervalMs: 300_000,
 };

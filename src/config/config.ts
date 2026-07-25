@@ -5,7 +5,6 @@ import type { ClaudeHueConfig } from "../types.js";
 
 export const CONFIG_DIR = join(homedir(), ".claude-hue");
 export const CONFIG_PATH = join(CONFIG_DIR, "config.json");
-export const USAGE_LOG_PATH = join(CONFIG_DIR, "usage.log");
 export const PID_PATH = join(CONFIG_DIR, "daemon.pid");
 
 export function ensureConfigDir(): void {
@@ -23,6 +22,8 @@ function isValidConfig(obj: unknown): obj is ClaudeHueConfig {
   const bridge = o.bridge as Record<string, unknown>;
   if (typeof bridge.ip !== "string" || !bridge.ip) return false;
   if (typeof bridge.username !== "string" || !bridge.username) return false;
+  const light = o.light as Record<string, unknown>;
+  if (typeof light.id !== "number") return false;
   return true;
 }
 
@@ -43,7 +44,7 @@ export function loadConfig(): ClaudeHueConfig {
   }
   if (!isValidConfig(parsed)) {
     throw new Error(
-      `Config at ${CONFIG_PATH} is missing required fields (bridge.ip, bridge.username). Delete it and run "claude-hue setup" again.`
+      `Config at ${CONFIG_PATH} is missing required fields. Delete it and run "claude-hue setup" again.`
     );
   }
   return parsed;

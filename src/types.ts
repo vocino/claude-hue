@@ -23,19 +23,9 @@ export interface BrightnessConfig {
   end: number;
 }
 
-export interface UsageConfig {
-  maxPrompts: number;
-  windowMs: number;
-}
-
 export interface DaemonConfig {
   transitionMs: number;
   pollIntervalMs: number;
-}
-
-export interface ClaudeAuthConfig {
-  cookie: string;
-  orgId: string;
 }
 
 export interface ClaudeHueConfig {
@@ -43,12 +33,17 @@ export interface ClaudeHueConfig {
   light: LightConfig;
   colors: ColorConfig;
   brightness: BrightnessConfig;
-  usage: UsageConfig;
   daemon: DaemonConfig;
-  claude?: ClaudeAuthConfig;
 }
 
-export interface UsageResult {
-  count: number;
-  percentage: number;
+export interface UsageLimit {
+  type: string;
+  percentUsed: number;
+  resetAt: string | null;
+  rawType: string;
+}
+
+export interface ClaudeUsageResponse {
+  limits: UsageLimit[];
+  primary: UsageLimit | null;
 }
