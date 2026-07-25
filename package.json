@@ -1,7 +1,7 @@
 {
   "name": "claude-hue",
-  "version": "0.1.1",
-  "description": "Visualize your Claude usage limits on a Philips Hue light",
+  "version": "0.2.0",
+  "description": "Visualize your Claude Code usage on Philips Hue — green→red as you approach limits. OAuth-only, handles 2026 Max monthly/harness limits.",
   "type": "module",
   "bin": {
     "claude-hue": "dist/index.js"
@@ -20,7 +20,8 @@
     "philips-hue",
     "hue",
     "usage-limits",
-    "cli"
+    "cli",
+    "claude-code"
   ],
   "license": "MIT",
   "author": "Vocino (https://vocino.com)",
@@ -34,8 +35,7 @@
     "node": ">=18"
   },
   "files": [
-    "dist",
-    "extension"
+    "dist"
   ],
   "dependencies": {
     "@inquirer/prompts": "^7.0.0",

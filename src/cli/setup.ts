@@ -1,33 +1,17 @@
-import { select, input, confirm } from "@inquirer/prompts";
+import { select, input } from "@inquirer/prompts";
 import { discoverBridges, createUser, getLights } from "../hue/bridge.js";
 import { flashLight } from "../hue/light.js";
 import { saveConfig, ensureConfigDir } from "../config/config.js";
 import { COLOR_PRESETS, hexToCieXY } from "../hue/color.js";
-import {
-  DEFAULT_COLORS,
-  DEFAULT_BRIGHTNESS,
-  DEFAULT_USAGE,
-  DEFAULT_DAEMON,
-} from "../config/defaults.js";
+import { DEFAULT_COLORS, DEFAULT_BRIGHTNESS, DEFAULT_DAEMON } from "../config/defaults.js";
 import type { ClaudeHueConfig, CieXY } from "../types.js";
-import { installHook } from "./install-hook.js";
 import { hasClaudeCodeOAuth } from "../claude/oauth.js";
 
-function parseWindowDuration(input: string): number | null {
-  const match = input.match(/^(\d+(?:\.\d+)?)\s*(h|hr|hrs|hours?|m|min|mins|minutes?)$/i);
-  if (!match) return null;
-  const value = parseFloat(match[1]);
-  const unit = match[2].toLowerCase();
-  if (unit.startsWith("h")) return value * 3600000;
-  if (unit.startsWith("m")) return value * 60000;
-  return null;
-}
-
 export async function runSetup(): Promise<void> {
-  console.log("\nclaude-hue setup\n");
+  console.log("\nclaude-hue setup — v2 OAuth-only\n");
 
   // Step 1: Discover bridge
-  console.log("Searching for Hue bridges on your network...");
+  console.log("Searching for Hue bridges on your network (discovery.meethue.com)...");
   let bridgeIp: string;
   try {
     const bridges = await discoverBridges();
@@ -53,9 +37,9 @@ export async function runSetup(): Promise<void> {
     });
   }
 
-  // Step 2: Pair with bridge
+  // Step 2: Pair
   console.log("\nPress the link button on your Hue bridge, then press Enter.");
-  await input({ message: "Press Enter when ready..." });
+  await input({ message: "Press Enter when ready (button pressed)..." });
 
   let username: string;
   let attempts = 0;
@@ -63,20 +47,21 @@ export async function runSetup(): Promise<void> {
     try {
       const result = await createUser(bridgeIp);
       username = result.username;
-      console.log("Paired successfully!");
+      console.log("Paired successfully.");
       break;
     } catch (err) {
       attempts++;
+      const msg = err instanceof Error ? err.message : String(err);
       if (attempts >= 3) {
-        console.error("Failed to pair after 3 attempts. Make sure you pressed the link button.");
+        console.error(`Failed after 3 attempts (${msg}). Make sure you pressed the link button, same LAN.`);
         process.exit(1);
       }
-      console.log("Link button not pressed. Try again...");
+      console.log(`Pair failed: ${msg} — try again...`);
       await input({ message: "Press Enter after pressing the link button..." });
     }
   }
 
-  // Step 3: Select light
+  // Step 3: Light
   console.log("\nFetching lights...");
   const lights = await getLights(bridgeIp, username);
   if (lights.length === 0) {
@@ -93,16 +78,14 @@ export async function runSetup(): Promise<void> {
   });
 
   const selectedLight = lights.find((l) => parseInt(l.id, 10) === lightId)!;
-
-  // Flash the selected light
   console.log(`Flashing "${selectedLight.name}" to confirm...`);
   await flashLight(bridgeIp, username, lightId);
 
-  // Step 4: Color preset
+  // Step 4: Colors
   const colorPreset = await select({
     message: "Choose color gradient:",
     choices: [
-      { name: "Green → Red (traffic light)", value: "green-red" },
+      { name: "Green → Red (traffic light, default)", value: "green-red" },
       { name: "Green → Orange", value: "green-orange" },
       { name: "Blue → Red", value: "blue-red" },
       { name: "Blue → Purple", value: "blue-purple" },
@@ -118,14 +101,12 @@ export async function runSetup(): Promise<void> {
     const startHex = await input({
       message: "Start color (low usage):",
       default: "#40a02b",
-      validate: (v) =>
-        hexToCieXY(v.trim()) ? true : "Invalid hex (use e.g. #40a02b)",
+      validate: (v) => (hexToCieXY(v.trim()) ? true : "Invalid hex (use e.g. #40a02b)"),
     });
     const endHex = await input({
       message: "End color (high usage):",
       default: "#d20f39",
-      validate: (v) =>
-        hexToCieXY(v.trim()) ? true : "Invalid hex (use e.g. #d20f39)",
+      validate: (v) => (hexToCieXY(v.trim()) ? true : "Invalid hex (use e.g. #d20f39)"),
     });
     startColor = hexToCieXY(startHex.trim())!;
     endColor = hexToCieXY(endHex.trim())!;
@@ -149,51 +130,24 @@ export async function runSetup(): Promise<void> {
     }
   }
 
-  // Step 5: Usage limits
-  const maxPromptsStr = await input({
-    message: `Max prompts before limit (default: ${DEFAULT_USAGE.maxPrompts}):`,
-    default: DEFAULT_USAGE.maxPrompts.toString(),
-  });
-  const maxPrompts = parseInt(maxPromptsStr, 10) || DEFAULT_USAGE.maxPrompts;
-
-  const windowStr = await input({
-    message: "Rolling window duration (default: 5h):",
-    default: "5h",
-  });
-  const windowMs = parseWindowDuration(windowStr) ?? DEFAULT_USAGE.windowMs;
-
-  // Step 6: Save config
+  // Save — no more maxPrompts/windowMs questions
   const config: ClaudeHueConfig = {
     bridge: { ip: bridgeIp, username },
     light: { id: lightId, name: selectedLight.name },
     colors: { start: startColor, end: endColor },
     brightness: DEFAULT_BRIGHTNESS,
-    usage: { maxPrompts, windowMs },
     daemon: DEFAULT_DAEMON,
   };
 
   ensureConfigDir();
   saveConfig(config);
-  console.log("\nConfiguration saved!");
+  console.log("\nConfiguration saved to ~/.claude-hue/config.json");
 
-  const hasOAuth = hasClaudeCodeOAuth();
-  if (hasOAuth) {
-    console.log("\n✓ Claude Code is logged in. Real usage will be used automatically.");
+  if (hasClaudeCodeOAuth()) {
+    console.log("\n✓ Claude Code is logged in (found ~/.claude/.credentials.json). Real usage will be used.");
   } else {
-    console.log(
-      "\nFor real usage (not just prompt counting): run 'claude login' or install the browser extension."
-    );
+    console.log('\nNo Claude Code OAuth token found. Run "claude login" (Claude Code CLI) first, then "claude-hue start".');
   }
 
-  // Step 7: Install hook (fallback when no OAuth/extension)
-  const shouldInstallHook = await confirm({
-    message: "Install the Claude Code hook as fallback for prompt counting?",
-    default: true,
-  });
-
-  if (shouldInstallHook) {
-    installHook();
-  }
-
-  console.log("\nSetup complete! Run 'claude-hue start' to begin.");
+  console.log("\nSetup complete. Run 'claude-hue start' to begin — light shows 5h session %, status shows all limits (5h, weekly, monthly, harness).\n");
 }
