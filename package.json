@@ -1,7 +1,7 @@
 {
   "name": "claude-hue",
   "version": "0.2.0",
-  "description": "Visualize your Claude Code usage on Philips Hue — green→red as you approach limits. OAuth-only, handles 2026 Max monthly/harness limits.",
+  "description": "[DEPRECATED use opencode-ambient] Visualize your Claude Code usage on Philips Hue \u2014 green\u2192red as you approach limits. Succeeded by opencode-ambient",
   "type": "module",
   "bin": {
     "claude-hue": "dist/index.js"

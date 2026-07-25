@@ -1,3 +1,12 @@
+> **⚠️ DEPRECATED — succeeded by [opencode-ambient](https://github.com/vocino/opencode-ambient)**  
+> This repo tracked Claude Code usage via Hue. The future is unified: `opencode-ambient` does **both Hue + Govee** for opencode agents (build/planning/fixing/error glow), 716 LOC core, Karpathy minimal, tiny HTTP daemon, no polling.
+>  
+>  This project is in maintenance only — no new features. Use ambient for new installs.
+>  
+>  Migrate: `npm i -g opencode-ambient && opencode-ambient setup && opencode-ambient start`
+>  See: https://github.com/vocino/opencode-ambient
+
+
 # claude-hue
 
 **See your Claude Code usage at a glance** — your Philips Hue light glows green → red as you approach limits.
